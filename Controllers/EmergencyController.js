@@ -1,9 +1,10 @@
-import EmergencyRequest from "../models/EmergencyRequest";
+import EmergencyRequest from "../models/EmergencyRequest.js";
+import mongoose from "mongoose";
 
 export const CreateEmergencyRequest = async(req,res)=>{
-    const { name, age, condition, oxygenLevel, location, urgency, requestAmbulance } = req.body;
+    const { patientName, age, condition, oxygenLevel, location, urgency, ambulanceRequested } = req.body;
     try{
-        if(!name || !age || !condition || !oxygenLevel || !location || !urgency){
+        if(!patientName || !age || !condition || !oxygenLevel || !location || !urgency){
             return res.status(400).json({message: "Please fill in all fields."});
         }
 
@@ -12,20 +13,20 @@ export const CreateEmergencyRequest = async(req,res)=>{
             return res.status(400).json({ error: "Invalid urgency level!" });
         }
 
-        if (typeof requestAmbulance !== "boolean") {
-            return res.status(400).json({ error: "requestAmbulance must be true or false!" });
+        if (typeof ambulanceRequested !== "boolean") {
+            return res.status(400).json({ error: "ambulanceRequested must be true or false!" });
         }
         
 
         const newRequest = new EmergencyRequest({
-            name,
+            patientName,
             age,
             condition,
             oxygenLevel,
             location,
             urgency,
-            requestAmbulance: requestAmbulance || false,
-            requestedAt: new Date(), // Store current timestamp
+            ambulanceRequested: ambulanceRequested || false,
+            // requestedAt: new Date(), // Store current timestamp
         });
         await newRequest.save();
 
@@ -48,11 +49,14 @@ export const GetEmergencyRequests = async(req,res)=>{
 
 export const EmergencyByLocation = async(req,res)=>{
     try{
-        const location = req.params;
+        const location = req.params.location;
         if(!location){
             return res.status(400).json({message: "Please provide a valid location."});
         }
-        const requests=EmergencyRequest.find({ location });
+        const requests = await EmergencyRequest.find({
+            location: { $regex: location, $options: 'i' }  // 'i' makes it case-insensitive
+        });
+
         return res.status(200).json({requests});
     }
     catch(error){
@@ -64,7 +68,7 @@ export const EmergencyByLocation = async(req,res)=>{
 export const UpdateEmergencyRequest = async(req,res)=>{
     try{
         const { id } = req.params;
-        const { status, hospitalResponse } = req.body;
+        const { status, ambulanceRequested } = req.body;
 
         if (!status) {
             return res.status(400).json({ error: "Status is required!" });
@@ -76,7 +80,7 @@ export const UpdateEmergencyRequest = async(req,res)=>{
 
         const updatedRequest = await EmergencyRequest.findByIdAndUpdate(
             id,
-            { status, hospitalResponse },
+            { status, ambulanceRequested },
             { new: true, runValidators: true }
         );
 
