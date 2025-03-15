@@ -22,6 +22,10 @@ app.use(bodyParser.json());
 app.use("/emergency",EmergencyRoutes);
 app.use("/auth",AuthRoutes);
 
+app.get("/",()=>{
+    return res.status(200).json({message:"Welcome to Emergency Service"});
+})
+
 app.listen(port,()=>{
     console.log("Server Running!");
 })
