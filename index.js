@@ -18,6 +18,9 @@ connectDB();
 //Middlewares
 app.use(cors({
     origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: "*", 
+    credentials: true
 }));
 app.use(compression());  // Enables response compression to reduce the size of the response body
 app.use(bodyParser.json());
